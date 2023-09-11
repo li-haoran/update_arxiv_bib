@@ -24,15 +24,32 @@ def parser_bib(file):
 
     infos={}
     for k,v in item.items():
+        nk=None
         infos[k]={'type':types[k],}
         for line in v:
             rmatch=re.match(r"\s*(\w+)\s*=\s*(.+)[,]*",line)
             if rmatch:
                 nk=rmatch.group(1)
                 nv=rmatch.group(2)
-                nv=nv.strip(',\t\n\r\f\v')
+                nv=nv.strip(', \t\n\r')
                 infos[k][nk]=nv
-        
+            else:
+                if nk is not None:
+                    nline=' '+line.strip(', \t\n\r')
+                    infos[k][nk]+=nline
+        #check {}
+        for lk,lv in infos[k].items():
+            nlv=''
+            mtt=0
+            for char in lv:
+                if char=='{':
+                    mtt+=1
+                if char=='}':
+                    mtt-=1
+                if mtt>=0:
+                    nlv+=char
+
+            infos[k][lk]=nlv        
     # print(infos)
     return infos
 
