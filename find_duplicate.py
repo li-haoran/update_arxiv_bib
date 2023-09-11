@@ -16,30 +16,44 @@ def parser_bib(file):
             continue
         if line.strip()=='':
             continue
-        rmatch = re.match(r"\s*\@(\w+)\{(.+),", line)
+        rmatch = re.match(r"\@(\w+)\{(.+),", line)
         if rmatch:
             type=rmatch.group(1)
             key=rmatch.group(2)
-            if key in item:
-                key+='_same'
-            item[key]=[line]
+            item[key]=[]
             types[key]=type
         else:
             item[key].append(line)
 
     infos={}
     for k,v in item.items():
-        infos[k]={'type':types[k],'source':v}
+        nk=None
+        infos[k]={'type':types[k],}
         for line in v:
             rmatch=re.match(r"\s*(\w+)\s*=\s*(.+)[,]*",line)
             if rmatch:
                 nk=rmatch.group(1)
                 nv=rmatch.group(2)
-                nv=nv.strip('\{\},\t\n\r\f\v')
+                nv=nv.strip(', \t\n\r')
                 infos[k][nk]=nv
-        
+            else:
+                if nk is not None:
+                    nline=' '+line.strip(', \t\n\r')
+                    infos[k][nk]+=nline
+        #check {}
+        for lk,lv in infos[k].items():
+            nlv=''
+            mtt=0
+            for char in lv:
+                if char=='{':
+                    mtt+=1
+                if char=='}':
+                    mtt-=1
+                if mtt>=0:
+                    nlv+=char
+
+            infos[k][lk]=nlv        
     # print(infos)
-    f.close()
     return infos
 
 
